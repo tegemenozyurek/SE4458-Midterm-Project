@@ -30,7 +30,6 @@ This API is designed for managing short-term accommodations. It provides functio
 2. **API Versioning:** The API supports versioned endpoints for compatibility and flexibility.
 3. **Database:** MySQL is used for data storage, ensuring scalability and reliability.
 4. **Paging:** All endpoints returning lists support paging for efficient data handling.
-5. **Swagger Documentation:** The API includes integrated Swagger for easy testing and documentation.
 
 ### Assumptions:
 - Users are categorized as **Host**, **Guest**, or **Admin** with appropriate roles and permissions.
@@ -42,6 +41,60 @@ This API is designed for managing short-term accommodations. It provides functio
 
 - **Authentication Challenges:** Integrating OAuth 2.0 required configuring Azure Active Directory and fine-tuning tokens, but it remains incomplete.
 
+---
+
+## Entity-Relationship (ER) Diagram
+
+Below is the Entity-Relationship model for the database:
+
+### **Listings**
+- **Attributes:**
+  - `ListingID` (Primary Key)
+  - `NoOfPeople` (Number of people the listing can accommodate)
+  - `Country` (Location country)
+  - `City` (Location city)
+  - `Price` (Price per stay)
+  - `Rating` (Optional, average rating for the listing)
+
+- **Relationships:**
+  - `Listings` have a **one-to-many relationship** with **Bookings** (Each listing can have multiple bookings).
+
+---
+
+### **Bookings**
+- **Attributes:**
+  - `BookingID` (Primary Key)
+  - `ListingID` (Foreign Key referencing `Listings.ListingID`)
+  - `StartDate` (Start date of the booking)
+  - `EndDate` (End date of the booking)
+  - `NoOfPeople` (Number of people booking the listing)
+
+- **Relationships:**
+  - `Bookings` have a **many-to-one relationship** with **Listings** (Each booking belongs to a single listing).
+  - `Bookings` have a **one-to-one relationship** with **Reviews** (A booking can have only one review).
+
+---
+
+### **Reviews**
+- **Attributes:**
+  - `ReviewID` (Primary Key)
+  - `BookingID` (Foreign Key referencing `Bookings.BookingID`)
+  - `Rating` (Rating given by the guest, between 1 and 5)
+  - `Comment` (Optional comment by the guest)
+
+- **Relationships:**
+  - `Reviews` have a **many-to-one relationship** with **Bookings** (Each review is linked to a single booking).
+
+---
+
+### Summary of Relationships
+- `Listings` ↔ `Bookings` (One-to-Many)
+- `Bookings` ↔ `Reviews` (One-to-One)
+
+The relationships ensure data integrity and enforce constraints for seamless data handling.
+
+
++---------------+
 ---
 
 ## Database Schema
@@ -77,3 +130,4 @@ CREATE TABLE Reviews (
     Comment TEXT,
     FOREIGN KEY (BookingID) REFERENCES Bookings(BookingID)
 );
+
