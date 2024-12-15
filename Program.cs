@@ -8,21 +8,26 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-// Configure API versioning
-builder.Services.AddApiVersioning(options =>
+// 1. Configure CORS to allow all origins (use restrictive policy in production)
+builder.Services.AddCors(options =>
 {
-    // Set the default version to 1.0
-    options.AssumeDefaultVersionWhenUnspecified = true;
-    options.DefaultApiVersion = new ApiVersion(1, 0);
-
-    // Optionally, specify a version reader (like from the URL or headers)
-    options.ApiVersionReader = ApiVersionReader.Combine(
-        new HeaderApiVersionReader("x-api-version"),    // Check API version in header
-        new QueryStringApiVersionReader("api-version")  // Or check API version in query string
-    );
+    options.AddPolicy("AllowAllOrigins", policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod());
 });
 
-// Add Swagger configuration
+// 2. Configure API versioning
+builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new HeaderApiVersionReader("x-api-version"),
+        new QueryStringApiVersionReader("api-version"));
+});
+
+// 3. Add Swagger configuration
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -33,27 +38,40 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Add DbContext with MySQL connection
+// 4. Add DbContext with MySQL connection
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        new MySqlServerVersion(new Version(8, 0, 32))
-    ));
+        new MySqlServerVersion(new Version(8, 0, 32))));
 
-// Add other services
+// 5. Add HttpClient support for GatewayController
+builder.Services.AddHttpClient();
+
+// 6. Add MVC Controllers
 builder.Services.AddControllers();
+
+// 7. Add Endpoint API Explorer
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// 8. Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// 9. Enable CORS (this must come before `MapControllers`)
+app.UseCors("AllowAllOrigins");
+
+// 10. Enable HTTPS redirection
 app.UseHttpsRedirection();
+
+// 11. Add Routing and Controller Mapping
+app.UseRouting();
+app.UseAuthorization();
 
 app.MapControllers();
 
