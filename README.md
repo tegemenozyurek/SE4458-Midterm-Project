@@ -1,7 +1,10 @@
 # Mini AirBnb Management API
 
-[Youtube Link](https://www.youtube.com/watch?v=4k15DfdxaeM)  
+[YouTube Link - Midterm](https://www.youtube.com/watch?v=4k15DfdxaeM)  
+[YouTube Link - Assignment 2](https://www.youtube.com/watch?v=1F8bziPUl7U) 
+
 [GitHub Repository](https://github.com/tegemenozyurek/SE4458-Midterm-Project.git)
+
 ---
 
 This API is designed for managing short-term accommodations. It provides functionality for **hosts**, **guests**, and **administrators** to manage listings, book stays, leave reviews, and generate reports. Built using ASP.NET Core, the API supports versioned endpoints, making it ideal for mobile and web-based vacation rental applications.
@@ -59,8 +62,6 @@ Below is the Entity-Relationship model for the database:
 - **Relationships:**
   - `Listings` have a **one-to-many relationship** with **Bookings** (Each listing can have multiple bookings).
 
----
-
 ### **Bookings**
 - **Attributes:**
   - `BookingID` (Primary Key)
@@ -73,8 +74,6 @@ Below is the Entity-Relationship model for the database:
   - `Bookings` have a **many-to-one relationship** with **Listings** (Each booking belongs to a single listing).
   - `Bookings` have a **one-to-one relationship** with **Reviews** (A booking can have only one review).
 
----
-
 ### **Reviews**
 - **Attributes:**
   - `ReviewID` (Primary Key)
@@ -85,16 +84,12 @@ Below is the Entity-Relationship model for the database:
 - **Relationships:**
   - `Reviews` have a **many-to-one relationship** with **Bookings** (Each review is linked to a single booking).
 
----
-
 ### Summary of Relationships
 - `Listings` ↔ `Bookings` (One-to-Many)
 - `Bookings` ↔ `Reviews` (One-to-One)
 
 The relationships ensure data integrity and enforce constraints for seamless data handling.
 
-
-+---------------+
 ---
 
 ## Database Schema
@@ -131,3 +126,30 @@ CREATE TABLE Reviews (
     FOREIGN KEY (BookingID) REFERENCES Bookings(BookingID)
 );
 
+---
+
+## Updates for Assignment 2
+
+### Implemented API Gateway Pattern
+- **Gateway Design:** A gateway was implemented to centralize and streamline communication between the client and the backend services. This API Gateway aggregates three critical endpoints:
+  - Listing retrieval.
+  - Booking creation.
+  - Review submission.
+- **Purpose:** The gateway improves scalability, reduces client-side complexity, and provides a single entry point for API consumers.
+- **Example:** The gateway routes requests based on the endpoint path and method type while ensuring security checks.
+
+### Message-Driven Architecture with RabbitMQ
+- **Payment Processing Workflow:** A RabbitMQ-based message queue system was implemented to handle a three-step payment process:
+  1. **Payment Queue:** Payments are sent to the queue with details like user email, payment type, and card number.
+  2. **Processing Service:** The payment is consumed from the queue, validated, and marked as completed.
+  3. **Notification Queue:** A success notification is pushed to another queue for delivery to the user via email.
+- **Design Assumptions:**
+  - Payments are processed asynchronously to avoid blocking other operations.
+  - Notifications are decoupled from the payment process for better scalability.
+- **Example Payload:**
+  ```json
+  {
+      "user": "ali@gmail.com",
+      "paymentType": "credit",
+      "cardNo": "1234123412341234"
+  }
